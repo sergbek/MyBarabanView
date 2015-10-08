@@ -3,5 +3,7 @@
     <declare-styleable name="MyViewGroup">
         <attr name="radius" format="integer"/>
         <attr name="strokeWidth" format="integer"/>
+        <attr name="colorArc" format="color"/>
+        <attr name="colorStroke" format="color"/>
     </declare-styleable>
 </resources>

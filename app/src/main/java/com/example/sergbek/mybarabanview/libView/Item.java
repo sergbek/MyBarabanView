@@ -5,16 +5,16 @@ public class Item {
 
     private int mID;
     private int mPhoto;
-    private String mColor;
+    private int mColor;
 
     private int mStartAngle;
     private int mEndAngle;
 
-    public String getColor() {
+    public int getColor() {
         return mColor;
     }
 
-    public void setColor(String color) {
+    public void setColor(int color) {
         mColor = color;
     }
 
@@ -50,14 +50,4 @@ public class Item {
         mPhoto = photo;
     }
 
-    @Override
-    public String toString() {
-        return "Item{" +
-                "mID=" + mID +
-                ", mPhoto=" + mPhoto +
-                ", mColor=" + mColor +
-                ", mStartAngle=" + mStartAngle +
-                ", mEndAngle=" + mEndAngle +
-                '}';
-    }
 }
