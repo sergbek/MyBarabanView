@@ -3,16 +3,18 @@ package com.example.sergbek.mybarabanview.libView;
 
 public class Item {
 
-    private int mColor;
+    private int mID;
+    private int mPhoto;
+    private String mColor;
 
     private int mStartAngle;
     private int mEndAngle;
 
-    public int getColor() {
+    public String getColor() {
         return mColor;
     }
 
-    public void setColor(int color) {
+    public void setColor(String color) {
         mColor = color;
     }
 
@@ -30,5 +32,32 @@ public class Item {
 
     public void setEndAngle(int endAngle) {
         mEndAngle = endAngle;
+    }
+
+    public int getID() {
+        return mID;
+    }
+
+    public void setID(int ID) {
+        mID = ID;
+    }
+
+    public int getPhoto() {
+        return mPhoto;
+    }
+
+    public void setPhoto(int photo) {
+        mPhoto = photo;
+    }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "mID=" + mID +
+                ", mPhoto=" + mPhoto +
+                ", mColor=" + mColor +
+                ", mStartAngle=" + mStartAngle +
+                ", mEndAngle=" + mEndAngle +
+                '}';
     }
 }

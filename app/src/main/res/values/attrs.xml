@@ -2,5 +2,6 @@
 <resources>
     <declare-styleable name="MyViewGroup">
         <attr name="radius" format="integer"/>
+        <attr name="strokeWidth" format="integer"/>
     </declare-styleable>
 </resources>

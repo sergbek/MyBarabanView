@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -34,7 +35,6 @@ public class ArcsView extends View {
     private Scroller mScroller;
     private ValueAnimator mScrollAnimator;
     private GestureDetector mDetector;
-    private ObjectAnimator mAutoCenterAnimator;
     private RectF mPieBounds = new RectF();
 
 
@@ -63,11 +63,10 @@ public class ArcsView extends View {
 
     private void init() {
         mPiePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPiePaint.setStyle(Paint.Style.FILL);
+//        mPiePaint.setStyle(Paint.Style.FILL);
 
         setRotation(mPieRotation);
 
-        mAutoCenterAnimator = ObjectAnimator.ofInt(this, "PieRotation", 0);
         mScroller = new Scroller(getContext(), null, true);
 
         mScrollAnimator = ValueAnimator.ofFloat(0, 1);
@@ -77,7 +76,8 @@ public class ArcsView extends View {
             }
         });
 
-        mDetector = new GestureDetector(getContext(), new GestureListener(mScroller, mScrollAnimator, mPieRotation));
+//        mDetector = new GestureDetector(getContext(), new GestureListener(mScroller, mScrollAnimator, mPieRotation));
+        mDetector = new GestureDetector(getContext(), new GestureListener());
 
         mDetector.setIsLongpressEnabled(false);
 
@@ -143,7 +143,7 @@ public class ArcsView extends View {
 
         int[] icons = {R.drawable.home_mbank_1_normal, R.drawable.home_mbank_2_normal,
                 R.drawable.home_mbank_3_normal, R.drawable.home_mbank_4_normal,
-                R.drawable.home_mbank_5_normal, R.drawable.home_mbank_6_normal};
+                };
 
         int sweepAngle = 360 / icons.length;
         int startAngle = -90 - sweepAngle / 2;
@@ -170,4 +170,45 @@ public class ArcsView extends View {
         }
 
     }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            Log.d("sometag", "onScroll");
+            float scrollTheta = Utils.vectorToScalarScroll(
+                    distanceX,
+                    distanceY,
+                    e2.getX() - mPieBounds.centerX(),
+                    e2.getY() - mPieBounds.centerY());
+            setPieRotation(mPieRotation - (int)scrollTheta/4);
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            Log.d("sometag", "onFling");
+            float scrollTheta = Utils.vectorToScalarScroll(
+                    velocityX,
+                    velocityY,
+                    e2.getX() - mPieBounds.centerX(),
+                    e2.getY() - mPieBounds.centerY());
+            mScroller.fling(
+                    0,
+                    (int) mPieRotation,
+                    0,
+                    (int) scrollTheta / FLING_VELOCITY_DOWNSCALE,
+                    0,
+                    0,
+                    Integer.MIN_VALUE,
+                    Integer.MAX_VALUE);
+
+
+            mScrollAnimator.setDuration(mScroller.getDuration());
+            mScrollAnimator.start();
+
+            return true;
+        }
+
+    }
+
 }

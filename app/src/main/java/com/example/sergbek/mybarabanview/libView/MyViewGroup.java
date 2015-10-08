@@ -9,6 +9,7 @@ import com.example.sergbek.mybarabanview.R;
 
 
 public class MyViewGroup extends FrameLayout {
+
     private int mRadius;
 
 
@@ -56,9 +57,12 @@ public class MyViewGroup extends FrameLayout {
         mainCircle.setRadius(mRadius);
         addView(mainCircle);
 
-        ArcsView arcsView = new ArcsView(getContext());
-        arcsView.setRadius(mRadius);
-        addView(arcsView);
+//        ArcsView arcsView = new ArcsView(getContext());
+//        arcsView.setRadius(mRadius);
+//        addView(arcsView);
+//        TestView testView=new TestView(getContext());
+//        testView.setRadius(mRadius);
+//        addView(testView);
 
         CentralCircle centralCircle = new CentralCircle(getContext());
         centralCircle.setRadius(mRadius);
