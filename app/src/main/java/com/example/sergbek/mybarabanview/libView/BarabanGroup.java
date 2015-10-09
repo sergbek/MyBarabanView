@@ -42,7 +42,8 @@ public class BarabanGroup extends ViewGroup {
     private BarabanView mBarabanView;
     private int mStrokeWidth;
     private int mCurrentTargetAngle;
-    private int mColor;
+    private int mColorArc;
+    private int mColorLine;
 
     private ObjectAnimator mAutoCenterAnimator;
 
@@ -50,7 +51,7 @@ public class BarabanGroup extends ViewGroup {
 
     public static final int DEG_CIRCLE = 360;
     public static final int FLING_VELOCITY_DOWNSCALE = 4;
-    public static final int AUTOCENTER_ANIM_DURATION = 550;
+    public static final int AUTOCENTER_ANIM_DURATION = 350;
 
     public BarabanGroup(Context context) {
         super(context);
@@ -67,7 +68,8 @@ public class BarabanGroup extends ViewGroup {
         try {
             this.mRadius = typedArray.getInt(R.styleable.MyViewGroup_radius, 0);
             this.mStrokeWidth = typedArray.getInt(R.styleable.MyViewGroup_strokeWidth, 5);
-            this.mColor = typedArray.getColor(R.styleable.MyViewGroup_colorArc, 0xFF574153);
+            this.mColorArc = typedArray.getColor(R.styleable.MyViewGroup_colorArc, 0xFF574153);
+            this.mColorLine = typedArray.getColor(R.styleable.MyViewGroup_colorArc, 0xFFED4702);
         } finally {
             typedArray.recycle();
         }
@@ -118,7 +120,7 @@ public class BarabanGroup extends ViewGroup {
                 item.setEndAngle(startAngle + sweepAngle);
                 startAngle += sweepAngle;
             }
-            item.setColor(mColor);
+            item.setColor(mColorArc);
             mData.add(item);
         }
     }
@@ -224,9 +226,33 @@ public class BarabanGroup extends ViewGroup {
         }
     }
 
+
+    private void moveItemUp(int startAngle, int endAngle) {
+        int itemCenterAngle = ((startAngle + endAngle) / 2) +
+                getBarabanRotation();
+
+        itemCenterAngle %= 360;
+
+        if (itemCenterAngle != 270) {
+            int rotateAngle;
+            if (itemCenterAngle > 270 || itemCenterAngle < 90) {
+                rotateAngle = (270 - 360 - itemCenterAngle) % 360;
+            } else {
+                rotateAngle = (270 + 360 - itemCenterAngle) % 360;
+            }
+
+            mAutoCenterAnimator.setIntValues(getBarabanRotation(), rotateAngle +
+                    getBarabanRotation());
+            mAutoCenterAnimator.setDuration(AUTOCENTER_ANIM_DURATION).start();
+        }
+
+        invalidate();
+    }
+
     public int getCurrentItem() {
         return mCurrentItem;
     }
+
     public int getBarabanRotation() {
         return mBarabanRotation;
     }
@@ -241,9 +267,9 @@ public class BarabanGroup extends ViewGroup {
 
     private class BarabanView extends View {
 
-        private Paint mMainCircle;
-        private Paint mCentralCircle;
-        private Paint mArc;
+        private Paint mPMainCircle;
+        private Paint mPCentralCircle;
+        private Paint mPArc;
 
         public BarabanView(Context context) {
             super(context);
@@ -251,12 +277,12 @@ public class BarabanGroup extends ViewGroup {
         }
 
         private void init() {
-            mMainCircle = new Paint();
-            mMainCircle.setShader(new LinearGradient(0, 100, 100, 0, Color.parseColor("#FFF04C08"),
+            mPMainCircle = new Paint();
+            mPMainCircle.setShader(new LinearGradient(0, 100, 100, 0, Color.parseColor("#FFF04C08"),
                     Color.parseColor("#FFE18D68"), Shader.TileMode.MIRROR));
 
-            mCentralCircle = new Paint();
-            mArc = new Paint();
+            mPCentralCircle = new Paint();
+            mPArc = new Paint();
 
             mAutoCenterAnimator = ObjectAnimator.ofInt(BarabanGroup.this, "BarabanRotation", 0);
         }
@@ -277,28 +303,28 @@ public class BarabanGroup extends ViewGroup {
         }
 
         private void drawMainCircle(Canvas canvas) {
-            mMainCircle.setColor(0xFF574153);
-            mMainCircle.setAntiAlias(true);
-            canvas.drawCircle(mCenterX, mCenterY, mRadius + mStrokeWidth, mMainCircle);
+            mPMainCircle.setColor(0xFF574153);
+            mPMainCircle.setAntiAlias(true);
+            canvas.drawCircle(mCenterX, mCenterY, mRadius + mStrokeWidth, mPMainCircle);
         }
 
         private void drawArc(Canvas canvas) {
 
             mBarabanBounds.set(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
 
-            int sweepAngle = DEG_CIRCLE / mData.size();
-            int startAngle = 270 - sweepAngle / 2;
+            float sweepAngle = (float) DEG_CIRCLE / mData.size();
+            float startAngle = 270 - sweepAngle / 2;
 
             for (int i = 0; i < mData.size(); i++) {
                 Item item = mData.get(i);
 
-                mArc.setColor(item.getColor());
-                mArc.setAntiAlias(true);
-                canvas.drawArc(mBarabanBounds, startAngle, sweepAngle, true, mArc);
+                mPArc.setColor(item.getColor());
+                mPArc.setAntiAlias(true);
+                canvas.drawArc(mBarabanBounds, startAngle, sweepAngle, true, mPArc);
 
                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), item.getPhoto());
                 canvas.drawBitmap(bitmap, mCenterX - bitmap.getWidth() / 2, mCenterY -
-                        (mRadius * 2 / 3) - bitmap.getHeight() / 2, mArc);
+                        (mRadius * 2 / 3) - bitmap.getHeight() / 2, mPArc);
                 canvas.rotate(sweepAngle, mCenterX, mCenterY);
 
             }
@@ -307,22 +333,23 @@ public class BarabanGroup extends ViewGroup {
             double x = mCenterX + (Math.cos(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
 
             for (int i = 0; i < mData.size(); i++) {
-                mArc.setColor(0xFFED4702);
-                mArc.setStrokeWidth(4f);
-                canvas.drawLine(mCenterX, mCenterY, (int) x, (int) y, mArc);
+                mPArc.setColor(mColorLine);
+                mPArc.setStrokeWidth(4f);
+                canvas.drawLine(mCenterX, mCenterY, (int) x, (int) y, mPArc);
 
                 canvas.rotate(sweepAngle, mCenterX, mCenterY);
             }
         }
 
-        private void drawCentralCircle(Canvas canvas) {
-            mCentralCircle.setColor(0xFF01E98C);
-            mCentralCircle.setAntiAlias(true);
-            canvas.drawCircle(mCenterX, mCenterY, mRadius / 7, mCentralCircle);
 
-            mCentralCircle.setColor(0xFFED4702);
-            mCentralCircle.setAntiAlias(true);
-            canvas.drawCircle(mCenterX, mCenterY, mRadius / 11, mCentralCircle);
+        private void drawCentralCircle(Canvas canvas) {
+            mPCentralCircle.setColor(0xFF01E98C);
+            mPCentralCircle.setAntiAlias(true);
+            canvas.drawCircle(mCenterX, mCenterY, mRadius / 7, mPCentralCircle);
+
+            mPCentralCircle.setColor(0xFFED4702);
+            mPCentralCircle.setAntiAlias(true);
+            canvas.drawCircle(mCenterX, mCenterY, mRadius / 11, mPCentralCircle);
         }
 
         public void rotateTo(float pieRotation) {
@@ -386,19 +413,29 @@ public class BarabanGroup extends ViewGroup {
 
             for (int i = 0; i < mData.size(); i++) {
                 Item item = mData.get(i);
-                item.setColor(mColor);
+                item.setColor(mColorArc);
+//                mColorLine = 0xDD77DD77;
                 if (angle > item.getStartAngle() && angle < item.getEndAngle()) {
                     item.setColor(0xDD77DD77);
-                    setCurrentItem(item.getID());
+//                    setCurrentItem(item.getID());
+                    moveItemUp(item.getStartAngle(), item.getEndAngle());
 
                 } else if ((angle > item.getStartAngle() || angle < item.getEndAngle())
                         && item.getStartAngle() + DEG_CIRCLE / mData.size() >= DEG_CIRCLE) {
 
                     item.setColor(0xDD77DD77);
-                    setCurrentItem(item.getID());
+//                    setCurrentItem(item.getID());
+                    moveItemUp(item.getStartAngle(), item.getEndAngle());
                 }
             }
             mBarabanView.invalidate();
+
+            return true;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            mAutoCenterAnimator.cancel();
 
             return true;
         }

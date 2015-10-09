@@ -4,6 +4,6 @@
         <attr name="radius" format="integer"/>
         <attr name="strokeWidth" format="integer"/>
         <attr name="colorArc" format="color"/>
-        <attr name="colorStroke" format="color"/>
+        <attr name="colorLine" format="color"/>
     </declare-styleable>
 </resources>
