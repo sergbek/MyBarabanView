@@ -50,4 +50,14 @@ public class Item {
         mPhoto = photo;
     }
 
+    @Override
+    public String toString() {
+        return "Item{" +
+                "mID=" + mID +
+                ", mPhoto=" + mPhoto +
+                ", mColor=" + mColor +
+                ", mStartAngle=" + mStartAngle +
+                ", mEndAngle=" + mEndAngle +
+                '}';
+    }
 }

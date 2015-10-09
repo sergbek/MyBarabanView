@@ -14,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -51,7 +52,7 @@ public class BarabanGroup extends ViewGroup {
 
     public static final int DEG_CIRCLE = 360;
     public static final int FLING_VELOCITY_DOWNSCALE = 4;
-    public static final int AUTOCENTER_ANIM_DURATION = 350;
+    public static final int AUTO_CENTER_ANIM_DURATION = 350;
 
     public BarabanGroup(Context context) {
         super(context);
@@ -100,12 +101,13 @@ public class BarabanGroup extends ViewGroup {
     public void setData() {
 
         int[] icons = {R.drawable.home_mbank_1_normal, R.drawable.home_mbank_2_normal,
-                R.drawable.home_mbank_3_normal, R.drawable.home_mbank_4_normal
-                , R.drawable.home_mbank_5_normal
-                , R.drawable.home_mbank_6_normal};
+                R.drawable.home_mbank_3_normal, R.drawable.home_mbank_4_normal, R.drawable.home_mbank_5_normal
+                , R.drawable.home_mbank_5_normal, R.drawable.home_mbank_5_normal,R.drawable.home_mbank_5_normal
+                };
 
         int sweepAngle = DEG_CIRCLE / icons.length;
-        int startAngle = 270 - sweepAngle / 2;
+//        int startAngle = 270 - sweepAngle / 2;
+        int startAngle = 0;
 
         for (int i = 0; i < icons.length; i++) {
             Item item = new Item();
@@ -113,13 +115,13 @@ public class BarabanGroup extends ViewGroup {
             item.setPhoto(icons[i]);
             item.setStartAngle(startAngle);
 
-            if (startAngle + sweepAngle >= DEG_CIRCLE) {
-                startAngle = (startAngle + sweepAngle) - DEG_CIRCLE;
-                item.setEndAngle(startAngle);
-            } else {
+//            if (startAngle + sweepAngle >= DEG_CIRCLE) {
+//                startAngle = (startAngle + sweepAngle) - DEG_CIRCLE;
+//                item.setEndAngle(startAngle);
+//            } else {
                 item.setEndAngle(startAngle + sweepAngle);
                 startAngle += sweepAngle;
-            }
+//            }
             item.setColor(mColorArc);
             mData.add(item);
         }
@@ -221,7 +223,7 @@ public class BarabanGroup extends ViewGroup {
         targetAngle -= DEG_CIRCLE / mData.size();
         if (targetAngle != mCurrentTargetAngle || targetAngle + mCurrentTargetAngle == 0) {
             mAutoCenterAnimator.setIntValues(targetAngle - 90);
-            mAutoCenterAnimator.setDuration(AUTOCENTER_ANIM_DURATION).start();
+            mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
             mCurrentTargetAngle = targetAngle;
         }
     }
@@ -243,7 +245,7 @@ public class BarabanGroup extends ViewGroup {
 
             mAutoCenterAnimator.setIntValues(getBarabanRotation(), rotateAngle +
                     getBarabanRotation());
-            mAutoCenterAnimator.setDuration(AUTOCENTER_ANIM_DURATION).start();
+            mAutoCenterAnimator.setDuration(AUTO_CENTER_ANIM_DURATION).start();
         }
 
         invalidate();
@@ -313,7 +315,10 @@ public class BarabanGroup extends ViewGroup {
             mBarabanBounds.set(mCenterX - mRadius, mCenterY - mRadius, mCenterX + mRadius, mCenterY + mRadius);
 
             float sweepAngle = (float) DEG_CIRCLE / mData.size();
-            float startAngle = 270 - sweepAngle / 2;
+            float startAngle = -90 - sweepAngle / 2;
+
+//            canvas.rotate((sweepAngle+sweepAngle/2) + sweepAngle /2 , mCenterX, mCenterY);
+            canvas.rotate(90 + sweepAngle/2 , mCenterX, mCenterY);
 
             for (int i = 0; i < mData.size(); i++) {
                 Item item = mData.get(i);
@@ -328,6 +333,9 @@ public class BarabanGroup extends ViewGroup {
                 canvas.rotate(sweepAngle, mCenterX, mCenterY);
 
             }
+
+//            canvas.rotate(-(sweepAngle+sweepAngle/2) - sweepAngle /2, mCenterX, mCenterY);
+//            canvas.rotate(-sweepAngle, mCenterX, mCenterY);
 
             double y = mCenterY + (Math.sin(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
             double x = mCenterX + (Math.cos(Math.toRadians(270 - sweepAngle / 2)) * mRadius);
@@ -355,8 +363,9 @@ public class BarabanGroup extends ViewGroup {
         public void rotateTo(float pieRotation) {
             setRotation(pieRotation);
         }
-    }
 
+
+    }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
@@ -404,6 +413,8 @@ public class BarabanGroup extends ViewGroup {
             float y = mCenterY - yPosition;
             float x = mCenterX - xPosition;
 
+            Log.d("www",mData.toString());
+
             double angle = Math.toDegrees(Math.atan2(y, x)) - 180;
             if (angle < 0) {
                 angle += DEG_CIRCLE;
@@ -419,14 +430,8 @@ public class BarabanGroup extends ViewGroup {
                     item.setColor(0xDD77DD77);
 //                    setCurrentItem(item.getID());
                     moveItemUp(item.getStartAngle(), item.getEndAngle());
-
-                } else if ((angle > item.getStartAngle() || angle < item.getEndAngle())
-                        && item.getStartAngle() + DEG_CIRCLE / mData.size() >= DEG_CIRCLE) {
-
-                    item.setColor(0xDD77DD77);
-//                    setCurrentItem(item.getID());
-                    moveItemUp(item.getStartAngle(), item.getEndAngle());
                 }
+
             }
             mBarabanView.invalidate();
 
@@ -436,7 +441,6 @@ public class BarabanGroup extends ViewGroup {
         @Override
         public boolean onDown(MotionEvent e) {
             mAutoCenterAnimator.cancel();
-
             return true;
         }
     }
